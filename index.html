@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            overflow: hidden;
+            font-family: -apple-system, system-ui, sans-serif;
+            height: 100%;
+        }
+
+        #app-container {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 80%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: flex-end;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+
+        #toggle-btn {
+            width: 60px;
+            height: 60px;
+            background: #fff;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 2;
+            margin: 10px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: transform 0.1s;
+        }
+
+        #toggle-btn:active {
+            transform: scale(0.95);
+        }
+
+        #toggle-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #panel {
+            width: 280px;
+            height: 100%;
+            max-height: 98vh;
+            background: #f5f6f7;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            margin-bottom: 5px;
+            margin-right: 10px;
+            display: none;
+            flex-direction: column;
+            border: 1px solid #ccc;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #panel.show {
+            display: flex;
+        }
+
+        .header {
+            background: #fff;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #333;
+            flex-shrink: 0;
+        }
+
+        .settings-icon {
+            font-size: 16px;
+            cursor: pointer;
+            color: #888;
+            margin-right: 8px;
+        }
+
+        .settings-icon:hover {
+            color: #333;
+        }
+
+        /* 釘選按鈕 */
+        .pin-icon {
+            font-size: 14px;
+            cursor: pointer;
+            color: #999;
+            margin-right: 8px;
+            transition: all 0.2s;
+            opacity: 0.5;
+        }
+
+        .pin-icon:hover {
+            opacity: 1;
+        }
+
+        .pin-icon.active {
+            color: #e74c3c;
+            opacity: 1;
+            transform: rotate(45deg);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .gold-bar {
+            background: #fffdf0;
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0e68c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .gold-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #b78900;
+        }
+
+        .gold-info {
+            text-align: right;
+        }
+
+        .gold-price {
+            font-size: 14px;
+            font-weight: 800;
+            color: #b78900;
+        }
+
+        .gold-high {
+            font-size: 10px;
+            color: #d4a017;
+            margin-top: 2px;
+        }
+
+        .rate-bar {
+            background: #eaf2f8;
+            padding: 8px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            border-bottom: 1px solid #dbe9f3;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .rate-tag {
+            background: #fff;
+            color: #0056b3;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            white-space: nowrap;
+            font-weight: bold;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .rate-del {
+            color: #ccc;
+            cursor: pointer;
+            font-size: 10px;
+            width: 12px;
+            height: 12px;
+            line-height: 12px;
+            text-align: center;
+        }
+
+        .rate-del:hover {
+            color: red;
+            background: #eee;
+            border-radius: 50%;
+        }
+
+        .rate-add-btn {
+            background: #007aff;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            flex-shrink: 0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .input-section {
+            padding: 8px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .input-box {
+            flex: 1;
+            min-width: 0;
+            padding: 6px 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .content {
+            flex: 1;
+            padding: 10px;
+            padding-bottom: 50px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .row {
+            background: #fff;
+            padding: 10px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .row:hover {
+            background: #f9f9f9;
+            transform: translateY(-1px);
+        }
+
+        .price { font-weight: 800; font-size: 15px; text-align: right; color: #333; }
+        
+        /* 漲跌顏色 (台股習慣) */
+        .trend-up { color: #e74c3c !important; } /* 漲: 紅 */
+        .trend-down { color: #27ae60 !important; } /* 跌: 綠 */
+        .trend-flat { color: #7f8c8d !important; } /* 平盤: 灰 */
+
+        .day-range {
+            font-size: 9px;
+            color: #999;
+            margin-top: 1px;
+            text-align: right;
+        }
+
+        .cost { color: #b78900; font-size: 10px; font-weight: bold; margin-top: 1px; text-align: right; }
+
+        .avg-cost { font-size: 10px; color: #007aff; font-weight: bold; margin-top: 1px; text-align: right; }
+
+        .search-result-item { 
+            background: #fff; 
+            padding: 10px; 
+            border-bottom: 1px solid #eee; 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .search-result-item:hover { background: #f0f8ff; }
+
+        /* Modal */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            width: 80%;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .btn-yes {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-confirm {
+            background: #007aff;
+            color: white;
+            width: 100%;
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            background: #fff;
+        }
+
+        /* 庫存管理 */
+        #inventory-panel {
+            position: absolute;
+            top: 45px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f5f6f7;
+            z-index: 10;
+            display: none;
+            flex-direction: column;
+        }
+
+        .inv-form {
+            padding: 15px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+        }
+
+        .inv-row {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .inv-list {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            padding-bottom: 50px;
+        }
+
+        #inv-search-results { 
+            max-height: 180px; /* 稍微加高 */
+            overflow-y: auto; 
+            background: #fff; 
+            border: 1px solid #007aff; /* 搜尋時邊框變藍色，更明顯 */
+            margin-bottom: 10px; 
+            display: none; 
+            border-radius: 4px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            position: relative; /* 確保層級 */
+            z-index: 100;
+        }
+
+        .inv-search-item {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .inv-search-item:hover {
+            background: #f0f8ff;
+        }
+
+        /* 卡片 */
+        .inv-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .inv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 8px;
+        }
+
+        .inv-symbol {
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .inv-header-right {
+            text-align: right;
+        }
+
+        .inv-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 11px;
+            color: #555;
+        }
+
+        .inv-cell {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .inv-label {
+            color: #888;
+            font-size: 10px;
+        }
+
+        .inv-val {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .inv-pl.pos {
+            color: #e74c3c;
+        }
+
+        .inv-pl.neg {
+            color: #27ae60;
+        }
+
+        .inv-actions {
+            margin-top: 8px;
+            border-top: 1px dashed #eee;
+            padding-top: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .inv-detail-btn {
+            font-size: 10px;
+            color: #007aff;
+            cursor: pointer;
+        }
+
+        .inv-bulk-del {
+            font-size: 10px;
+            color: #e74c3c;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .inv-logs {
+            display: none;
+            margin-top: 5px;
+            background: #f9f9f9;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .inv-log-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #666;
+            padding: 3px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        #context-menu {
+            position: fixed;
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            padding: 5px 0;
+            z-index: 9999;
+            display: none;
+            width: 100px;
+        }
+
+        .ctx-item {
+            padding: 8px 15px;
+            font-size: 13px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .ctx-item:hover {
+            background: #f0f8ff;
+            color: #007aff;
+        }
+
+        .ctx-item.delete {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app-container">
+        <div id="panel">
+            <div class="header">
+                <div style="display:flex; align-items:center;">
+                    <span class="settings-icon" onclick="toggleInventoryPanel()">⚙️</span>
+                    <span>🐶 狗狗金控</span>
+                </div>
+                <div style="display:flex; align-items:center;">
+                    <span id="pin-btn" class="pin-icon" onclick="togglePin()" title="釘選視窗">📌</span>
+                    <span style="cursor:pointer;color:#999;padding:0 5px;" onclick="toggleMode()">✖</span>
+                </div>
+            </div>
+
+            <div id="main-view" style="display:flex; flex-direction:column; height:100%;">
+                <div class="gold-bar" id="gold-area">
+                    <div class="gold-title">🪙 黃金存摺</div>
+                    <div class="gold-info">
+                        <div style="font-size:11px">載入中...</div>
+                    </div>
+                </div>
+                <div class="rate-bar" id="rate-area"></div>
+                <div class="input-section">
+                    <input type="text" id="stock-input" class="input-box" placeholder="輸入股票代碼搜尋 (如 2330)">
+                    <button class="action-btn" onclick="handleStockInput()">搜尋</button>
+                </div>
+                <div class="content" id="data-area">載入資料中...</div>
+            </div>
+
+            <div id="inventory-panel">
+                <div
+                    style="padding:10px; font-weight:bold; background:#fff; border-bottom:1px solid #eee; display:flex; justify-content:space-between;">
+                    <span>📦 庫存設定</span>
+                    <button class="action-btn" style="background:#888; padding:2px 8px;"
+                        onclick="toggleInventoryPanel()">返回</button>
+                </div>
+                <div class="inv-form">
+                    <div style="font-size:11px; color:#666; margin-bottom:5px;">新增購買紀錄 (請先搜尋代碼):</div>
+
+                    <div class="inv-row">
+                        <input type="text" id="inv-symbol-search" class="input-box" placeholder="輸入代碼 (0050) 搜尋..."
+                            style="flex:1">
+                        <button class="action-btn" onclick="searchInvStock()" style="width:30px">🔍</button>
+                    </div>
+                    <div id="inv-search-results"></div>
+                    <input type="text" id="inv-symbol-locked" class="input-box"
+                        style="margin-bottom:8px; background:#e8f5e9; display:none; width:100%; border-color:#4caf50;"
+                        readonly>
+
+                    <div class="inv-row">
+                        <input type="number" id="inv-price" class="input-box" placeholder="單價 (Price)" style="flex:1">
+                        <input type="number" id="inv-shares" class="input-box" placeholder="股數 (Shares)" style="flex:1">
+                    </div>
+                    <div class="inv-row">
+                        <input type="number" id="inv-rate" class="input-box" placeholder="匯率 (台股自動填1)" style="flex:1">
+                        <input type="date" id="inv-date" class="input-box" style="flex:1.5">
+                    </div>
+                    <div class="inv-row" style="justify-content: flex-end;">
+                        <button class="action-btn" onclick="addInventory()" style="width:100%">+ 新增紀錄</button>
+                    </div>
+                </div>
+                <div class="inv-list" id="inv-list-area">
+                    <div style="text-align:center; color:#999; padding:20px;">載入中...</div>
+                </div>
+            </div>
+
+            <div id="alert-modal" class="modal-overlay">
+                <div class="modal-box">
+                    <div id="alert-text" class="modal-title"></div>
+                    <div class="modal-actions">
+                        <button class="modal-btn btn-confirm" onclick="closeAlert()">好</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="confirm-modal" class="modal-overlay">
+                <div class="modal-box">
+                    <div id="modal-text" class="modal-title"></div>
+                    <div class="modal-actions">
+                        <button class="modal-btn" onclick="closeAllModals()">取消</button>
+                        <button class="modal-btn btn-yes" onclick="confirmAction()">確定</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="rename-modal" class="modal-overlay">
+                <div class="modal-box">
+                    <div class="modal-title">修改股票名稱</div>
+                    <input type="text" id="rename-input" class="input-box"
+                        style="width:100%; margin-bottom:10px; font-size:14px; padding:8px;">
+                    <div class="modal-actions">
+                        <button class="modal-btn" onclick="closeAllModals()">取消</button>
+                        <button class="modal-btn btn-confirm" onclick="confirmRename()">儲存</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="currency-modal" class="modal-overlay">
+                <div class="modal-box">
+                    <div class="modal-title">請選擇新增幣別</div>
+                    <select id="currency-select">
+                        <option value="USD">美元 (USD)</option>
+                        <option value="JPY">日圓 (JPY)</option>
+                        <option value="CNY">人民幣 (CNY)</option>
+                        <option value="EUR">歐元 (EUR)</option>
+                        <option value="HKD">港幣 (HKD)</option>
+                        <option value="GBP">英鎊 (GBP)</option>
+                        <option value="AUD">澳幣 (AUD)</option>
+                        <option value="SGD">新加坡幣 (SGD)</option>
+                    </select>
+                    <div class="modal-actions">
+                        <button class="modal-btn" onclick="closeAllModals()">取消</button>
+                        <button class="modal-btn btn-confirm" onclick="confirmAddCurrency()">新增</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+<div id="toggle-btn" onclick="toggleMode()" oncontextmenu="showDogContextMenu(event)">
+    <img src="./content/DSC05068.jpg">
+</div>
+
+<div id="context-menu">
+    <div class="ctx-item" onclick="handleCtxHide()">📉 縮小</div>
+    <div class="ctx-item" onclick="handleCtxRename()">✎ 重新命名</div>
+    <div class="ctx-item delete" onclick="handleCtxDelete()">🗑 移除股票</div>
+</div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        let isExpanded = false;
+        let isSearching = false;
+        let isPinned = false;
+        let pendingAction = null;
+        let currentCtxSymbol = null;
+        let cachedPortfolio = [];
+        let cachedRates = {}; // [NEW] 暫存匯率供表單使用
+        let selectedInvSymbol = null;
+
+        ipcRenderer.on('reset-ui', () => {
+            isExpanded = false; isSearching = false;
+            document.getElementById('panel').classList.remove('show');
+            closeAllModals();
+        });
+
+        function toggleMode() {
+            isExpanded = !isExpanded;
+            const panel = document.getElementById('panel');
+            if (isExpanded) {
+                ipcRenderer.send('resize-window', { width: 320, height: 720 });
+                setTimeout(() => {
+                    panel.classList.add('show');
+                    if (!isSearching) loadData();
+                    document.getElementById('stock-input').focus();
+                }, 100);
+            } else {
+                panel.classList.remove('show');
+                isSearching = false; document.getElementById('stock-input').value = '';
+                document.getElementById('inventory-panel').style.display = 'none';
+                closeAllModals();
+                requestAnimationFrame(() => {
+                    setTimeout(() => ipcRenderer.send('resize-window', { width: 100, height: 100 }), 50);
+                });
+            }
+        }
+
+        function togglePin() {
+            isPinned = !isPinned;
+            const btn = document.getElementById('pin-btn');
+            if (isPinned) btn.classList.add('active'); else btn.classList.remove('active');
+        }
+
+        window.addEventListener('blur', () => {
+            if (isPinned) return;
+            const hasModalOpen = document.getElementById('confirm-modal').style.display === 'flex' ||
+                document.getElementById('alert-modal').style.display === 'flex' ||
+                document.getElementById('rename-modal').style.display === 'flex' ||
+                document.getElementById('currency-modal').style.display === 'flex';
+            if (isExpanded && !hasModalOpen) toggleMode();
+        });
+
+        function openUrl(url) { ipcRenderer.send('open-url', url); }
+        function askCloseApp() { isExpanded ? showCloseModal() : (toggleMode(), setTimeout(showCloseModal, 300)); }
+        function showCloseModal() {
+            pendingAction = { type: 'quit' };
+            document.getElementById('modal-text').innerText = '確定要完全關閉程式嗎？';
+            document.getElementById('confirm-modal').style.display = 'flex';
+        }
+
+        function showAlert(msg) {
+            document.getElementById('alert-text').innerText = msg;
+            document.getElementById('alert-modal').style.display = 'flex';
+        }
+        function closeAlert() { document.getElementById('alert-modal').style.display = 'none'; }
+
+        function closeAllModals() {
+            document.getElementById('confirm-modal').style.display = 'none';
+            document.getElementById('currency-modal').style.display = 'none';
+            document.getElementById('rename-modal').style.display = 'none';
+            document.getElementById('alert-modal').style.display = 'none';
+            pendingAction = null;
+        }
+
+        function toggleInventoryPanel() {
+            const invPanel = document.getElementById('inventory-panel');
+            if (invPanel.style.display === 'flex') {
+                invPanel.style.display = 'none';
+                loadData();
+            } else {
+                invPanel.style.display = 'flex';
+                document.getElementById('inv-symbol-search').value = '';
+                document.getElementById('inv-symbol-locked').style.display = 'none';
+                document.getElementById('inv-search-results').style.display = 'none';
+                selectedInvSymbol = null;
+                // 重置欄位
+                document.getElementById('inv-price').value = '';
+                document.getElementById('inv-shares').value = '';
+                document.getElementById('inv-rate').value = '';
+                document.getElementById('inv-date').value = '';
+                loadInventoryList();
+            }
+        }
+
+        async function searchInvStock() {
+            const query = document.getElementById('inv-symbol-search').value.trim();
+            if (!query) return;
+
+            const resultsDiv = document.getElementById('inv-search-results');
+            resultsDiv.innerHTML = '<div style="padding:8px;color:#999">搜尋中...</div>';
+            resultsDiv.style.display = 'block';
+
+            try {
+                const res = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(query)}`);
+                const data = await res.json();
+
+                if (data.results && data.results.length > 0) {
+                    let html = '';
+                    data.results.forEach(item => {
+                        html += `
+                            <div class="inv-search-item" onclick="selectInvStock('${item.symbol}', '${item.name}')">
+                                <div><span style="font-weight:bold">${item.symbol}</span> ${item.name}</div>
+                                <div style="font-size:10px;color:#999">${item.exch}</div>
+                            </div>
+                        `;
+                    });
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = '<div style="padding:8px">找不到股票</div>';
+                }
+            } catch (e) { resultsDiv.innerHTML = '搜尋錯誤'; }
+        }
+
+        // [NEW] 選擇並鎖定，自動判斷匯率
+        function selectInvStock(symbol, name) {
+            selectedInvSymbol = symbol;
+            const lockedInput = document.getElementById('inv-symbol-locked');
+            lockedInput.value = `${symbol} - ${name}`;
+            lockedInput.style.display = 'block';
+
+            document.getElementById('inv-search-results').style.display = 'none';
+            document.getElementById('inv-symbol-search').value = '';
+
+            // 自動填匯率邏輯
+            const rateInput = document.getElementById('inv-rate');
+            if (symbol.includes('.TW') || symbol.includes('.TWO')) {
+                rateInput.value = 1;
+                rateInput.disabled = true; // 鎖定
+                rateInput.style.background = '#eee';
+            } else {
+                const currentUSD = cachedRates['USD'] || 32.5;
+                rateInput.value = currentUSD;
+                rateInput.disabled = false; // 允許修改
+                rateInput.style.background = '#fff';
+            }
+
+            document.getElementById('inv-price').focus();
+        }
+
+        async function addInventory() {
+            const price = document.getElementById('inv-price').value;
+            const shares = document.getElementById('inv-shares').value;
+            const rate = document.getElementById('inv-rate').value;
+            const date = document.getElementById('inv-date').value;
+
+            if (!selectedInvSymbol) return showAlert('請先搜尋並選擇股票代碼');
+            if (!price || !shares) return showAlert('價格與股數為必填');
+            if (!rate) return showAlert('匯率為必填');
+
+            await fetch('http://localhost:3000/api/add-inventory', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    symbol: selectedInvSymbol,
+                    price,
+                    shares,
+                    exchangeRate: rate, // 傳送匯率
+                    date
+                })
+            });
+
+            // 清空除鎖定代碼外的欄位
+            document.getElementById('inv-price').value = '';
+            document.getElementById('inv-shares').value = '';
+            document.getElementById('inv-date').value = '';
+            // 匯率不清空，方便連續輸入
+            loadInventoryList();
+        }
+
+        function askRemoveInventoryGroup(symbol) {
+            pendingAction = { type: 'inventory-group', id: symbol };
+            document.getElementById('modal-text').innerText = `刪除 ${symbol} 所有紀錄？`;
+            document.getElementById('confirm-modal').style.display = 'flex';
+        }
+
+        function askRemoveInventoryItem(id) {
+            pendingAction = { type: 'inventory-item', id };
+            document.getElementById('modal-text').innerText = '刪除此筆紀錄？';
+            document.getElementById('confirm-modal').style.display = 'flex';
+        }
+
+        async function confirmAction() {
+            if (!pendingAction) return;
+            try {
+                if (pendingAction.type === 'quit') {
+                    ipcRenderer.send('close-app');
+                }
+                else if (pendingAction.type === 'stock') {
+                    await fetch('http://localhost:3000/api/remove-stock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol: pendingAction.id }) });
+                    loadData();
+                }
+                else if (pendingAction.type === 'currency') {
+                    await fetch('http://localhost:3000/api/remove-currency', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ currency: pendingAction.id }) });
+                    loadData();
+                }
+                else if (pendingAction.type === 'inventory-item') {
+                    await fetch('http://localhost:3000/api/remove-inventory', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: pendingAction.id }) });
+                    loadInventoryList();
+                }
+                else if (pendingAction.type === 'inventory-group') {
+                    await fetch('http://localhost:3000/api/remove-inventory-group', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol: pendingAction.id }) });
+                    loadInventoryList();
+                }
+            } catch (e) { }
+            closeAllModals();
+        }
+    async function loadInventoryList() {
+            try {
+                const res = await fetch('http://localhost:3000/api/data');
+                const data = await res.json();
+                const inventory = Array.isArray(data.inventory) ? data.inventory : [];
+                cachedPortfolio = data.portfolio || [];
+                cachedRates = data.rates || {};
+
+                const listArea = document.getElementById('inv-list-area');
+                if (inventory.length === 0) {
+                    listArea.innerHTML = '<div style="text-align:center;color:#999;padding:20px">尚無庫存紀錄</div>';
+                    return;
+                }
+
+                const grouped = {};
+                inventory.forEach(item => {
+                    if (!grouped[item.symbol]) grouped[item.symbol] = {
+                        symbol: item.symbol,
+                        totalShares: 0,
+                        totalCostTWD: 0,
+                        totalCostOriginal: 0,
+                        records: []
+                    };
+
+                    const p = parseFloat(item.price) || 0;
+                    const s = parseFloat(item.shares) || 0;
+
+                    let r = parseFloat(item.exchangeRate);
+                    // 針對個別紀錄如果沒有儲存匯率，做 Fallback 處理
+                    if (!r || r <= 0) {
+                        if (item.symbol.includes('TW')) r = 1;
+                        else {
+                            const rateObj = cachedRates['USD'];
+                            // 如果是物件結構 {price, prevClose} 則取 price，否則直接用
+                            r = (rateObj && typeof rateObj === 'object') ? rateObj.price : (rateObj || 32);
+                        }
+                    }
+
+                    grouped[item.symbol].totalShares += s;
+                    grouped[item.symbol].totalCostTWD += (p * s * r);
+                    grouped[item.symbol].totalCostOriginal += (p * s);
+                    grouped[item.symbol].records.push({ ...item, usedRate: r });
+                });
+
+                let html = '';
+                Object.values(grouped).forEach(g => {
+                    const marketData = cachedPortfolio.find(p => p.symbol === g.symbol);
+                    const displayName = marketData ? marketData.name : g.symbol;
+                    const displaySymbol = g.symbol;
+                    const isTW = g.symbol.includes('.TW') || g.symbol.includes('.TWO');
+
+                    const currentPrice = marketData ? marketData.price : 0;
+
+                    // 關鍵修正：計算市值時的匯率取值
+                    let currentRate = 1;
+                    if (!isTW) {
+                        const rateObj = cachedRates['USD'];
+                        // 確保取到的是數字
+                        currentRate = (rateObj && typeof rateObj === 'object') ? rateObj.price : (rateObj || 1);
+                    }
+
+                    const marketValueTWD = currentPrice * g.totalShares * currentRate;
+                    const profitLossTWD = marketValueTWD - g.totalCostTWD;
+                    const roi = g.totalCostTWD > 0 ? (profitLossTWD / g.totalCostTWD) * 100 : 0;
+
+                    const plClass = profitLossTWD >= 0 ? 'pos' : 'neg';
+                    const plStr = profitLossTWD >= 0 ? `+${Math.round(profitLossTWD).toLocaleString()}` : Math.round(profitLossTWD).toLocaleString();
+
+                    // [UI] 防呆：如果計算出錯顯示 ---
+                    const displayPlStr = isNaN(profitLossTWD) ? '---' : plStr;
+                    const displayRoiStr = isNaN(roi) ? '---%' : (roi >= 0 ? `+${roi.toFixed(2)}%` : `${roi.toFixed(2)}%`);
+                    const displayMarketValue = isNaN(marketValueTWD) ? '---' : Math.round(marketValueTWD).toLocaleString();
+
+                    // 均價顯示
+                    let avgDisplay = '0';
+                    let avgLabel = isTW ? '均價(NT)' : '均價(US)';
+
+                    if (g.totalShares > 0) {
+                        if (isTW) {
+                            const avgTWD = g.totalCostTWD / g.totalShares;
+                            avgDisplay = Math.round(avgTWD).toLocaleString();
+                        } else {
+                            const avgOrg = g.totalCostOriginal / g.totalShares;
+                            avgDisplay = avgOrg.toFixed(2);
+                        }
+                    }
+
+                    html += `
+                        <div class="inv-card">
+                            <div class="inv-header">
+                                <div>
+                                    <div class="inv-symbol" style="font-size:14px;">${displayName}</div>
+                                    <div style="font-size:10px;color:#999;font-weight:normal;">${displaySymbol}</div>
+                                </div>
+                                <div class="inv-header-right">
+                                    <div class="inv-pl ${plClass}" style="font-size:13px;font-weight:bold">${displayPlStr}</div>
+                                    <div class="inv-pl ${plClass}" style="font-size:10px">${displayRoiStr}</div>
+                                </div>
+                            </div>
+                            <div class="inv-grid">
+                                <div class="inv-cell"><span class="inv-label">${avgLabel}</span><span class="inv-val">${avgDisplay}</span></div>
+                                <div class="inv-cell"><span class="inv-label">現價(${isTW ? 'NT' : 'US'})</span><span class="inv-val">${currentPrice}</span></div>
+                                <div class="inv-cell"><span class="inv-label">庫存</span><span class="inv-val">${g.totalShares}</span></div>
+                                <div class="inv-cell"><span class="inv-label">市值(NT)</span><span class="inv-val">${displayMarketValue}</span></div>
+                            </div>
+                            <div class="inv-actions">
+                                <div class="inv-detail-btn" onclick="toggleDetails(this)">明細 (${g.records.length}) ▼</div>
+                                <div class="inv-bulk-del" onclick="askRemoveInventoryGroup('${g.symbol}')">🗑 刪除全部</div>
+                            </div>
+                            <div class="inv-logs">
+                                ${g.records.map(r => `
+                                    <div class="inv-log-item">
+                                        <span>${r.date || '--'}</span>
+                                        <span>$${r.price} x ${r.shares} (匯:${r.usedRate})</span>
+                                        <span style="color:#e74c3c;cursor:pointer" onclick="askRemoveInventoryItem('${r.id}')">×</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+                listArea.innerHTML = html;
+            } catch (e) { console.error(e); }
+        }
+
+        function showContextMenu(e, symbol) { e.preventDefault(); e.stopPropagation(); currentCtxSymbol = symbol; const menu = document.getElementById('context-menu'); menu.style.display = 'block'; menu.style.left = e.pageX + 'px'; menu.style.top = e.pageY + 'px'; }
+        document.addEventListener('click', () => {
+                document.getElementById('context-menu').style.display = 'none';
+            });
+        function handleCtxRename() { if (!currentCtxSymbol) return; document.getElementById('rename-input').value = ''; document.getElementById('rename-modal').style.display = 'flex'; document.getElementById('rename-input').focus(); }
+        function handleCtxHide() {
+                // 發送訊號給 main.js，請求隱藏視窗
+                ipcRenderer.send('hide-to-tray');
+                // 隱藏右鍵選單
+                document.getElementById('context-menu').style.display = 'none';
+            }
+        async function confirmRename() { const newName = document.getElementById('rename-input').value.trim(); if (newName && currentCtxSymbol) { await fetch('http://localhost:3000/api/rename-stock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol: currentCtxSymbol, newName }) }); } closeAllModals(); loadData(); }
+        function handleCtxDelete() { if (!currentCtxSymbol) return; askDelete('stock', currentCtxSymbol); }
+        function handleStockInput() { const input = document.getElementById('stock-input'); const val = input.value.trim().toUpperCase(); if (!val) { isSearching = false; loadData(); return; } searchStock(val); }
+        async function searchStock(query) { isSearching = true; const displayArea = document.getElementById('data-area'); displayArea.innerHTML = '<div style="text-align:center;padding:20px;color:#888">搜尋中...</div>'; try { const res = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(query)}`); const data = await res.json(); let html = '<div style="font-size:11px;color:#999;margin-bottom:5px;">點選加入股票:</div>'; if (data.results && data.results.length > 0) { data.results.forEach(item => { html += `<div class="search-result-item" onclick="addStock('${item.symbol}')"><div><div style="font-weight:bold">${item.symbol}</div><div style="font-size:11px">${item.name}</div></div><div style="font-size:10px;background:#eee;padding:2px;">${item.exch}</div></div>`; }); } else { html += '<div style="padding:10px;text-align:center;">找不到股票</div>'; } html += `<div style="text-align:center;margin-top:10px;"><button class="action-btn" style="background:#888" onclick="cancelSearch()">返回</button></div>`; displayArea.innerHTML = html; } catch (e) { displayArea.innerHTML = '搜尋錯誤'; } }
+        async function addStock(symbol) { await fetch('http://localhost:3000/api/add-stock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol }) }); cancelSearch(); }
+        function openCurrencyModal() { document.getElementById('currency-modal').style.display = 'flex'; }
+        async function confirmAddCurrency() { const select = document.getElementById('currency-select'); const currency = select.value; await fetch('http://localhost:3000/api/add-currency', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ currency }) }); closeAllModals(); loadData(); }
+        function cancelSearch() { isSearching = false; document.getElementById('stock-input').value = ''; loadData(); }
+        function askDelete(type, id) { pendingAction = { type, id }; const name = type === 'stock' ? id : `${id} 匯率`; document.getElementById('modal-text').innerText = `移除 ${name}？`; document.getElementById('confirm-modal').style.display = 'flex'; }
+        let dragSrcEl = null; function handleDragStart(e) { dragSrcEl = this; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/html', this.innerHTML); this.classList.add('dragging'); } function handleDragOver(e) { if (e.preventDefault) e.preventDefault(); e.dataTransfer.dropEffect = 'move'; this.classList.add('over'); return false; } function handleDragLeave(e) { this.classList.remove('over'); } function handleDrop(e) { if (e.stopPropagation) e.stopPropagation(); this.classList.remove('over'); const srcType = dragSrcEl.getAttribute('data-type'); const destType = this.getAttribute('data-type'); if (dragSrcEl !== this && srcType === destType) { const container = this.parentNode; const siblings = [...container.children]; const srcIndex = siblings.indexOf(dragSrcEl); const destIndex = siblings.indexOf(this); if (srcIndex < destIndex) container.insertBefore(dragSrcEl, this.nextSibling); else container.insertBefore(dragSrcEl, this); updateOrder(srcType); } dragSrcEl.classList.remove('dragging'); return false; } function handleDragEnd(e) { this.classList.remove('over'); this.classList.remove('dragging'); document.querySelectorAll('.row, .rate-tag').forEach(item => item.classList.remove('over')); } function addDnDHandlers(elem) { elem.addEventListener('dragstart', handleDragStart, false); elem.addEventListener('dragover', handleDragOver, false); elem.addEventListener('dragleave', handleDragLeave, false); elem.addEventListener('drop', handleDrop, false); elem.addEventListener('dragend', handleDragEnd, false); } async function updateOrder(type) { let newOrder = []; if (type === 'stock') { const items = document.querySelectorAll('.row[data-type="stock"]'); items.forEach(item => newOrder.push(item.getAttribute('data-id'))); await fetch('http://localhost:3000/api/reorder-stocks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ newOrder }) }); } else if (type === 'currency') { const items = document.querySelectorAll('.rate-tag[data-type="currency"]'); items.forEach(item => newOrder.push(item.getAttribute('data-id'))); await fetch('http://localhost:3000/api/reorder-currencies', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ newOrder }) }); } }
+
+        async function loadData() {
+                if (isSearching) return;
+                try {
+                    const res = await fetch('http://localhost:3000/api/data');
+                    const data = await res.json();
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    if (!data.portfolio || !Array.isArray(data.portfolio)) {
+                        throw new Error('無法取得股票清單');
+                    }
+                    cachedPortfolio = data.portfolio || [];
+                    cachedRates = data.rates || {};
+
+                    // 1. 黃金區塊 
+                    const goldArea = document.getElementById('gold-area');
+                    if (data.gold) {
+                        const currentPrice = data.gold.current || 0;
+                        const prevPrice = data.gold.prevClose || 0;
+                        const highPrice = data.gold.high || 0;
+
+                        // 計算漲跌顏色
+                        const diff = currentPrice - prevPrice;
+                        let goldClass = '';
+                        // 黃金只顯示顏色，不強制顯示漲跌幅文字，保持版面簡潔
+                        if (prevPrice > 0) {
+                            if (diff > 0) goldClass = 'trend-up';
+                            else if (diff < 0) goldClass = 'trend-down';
+                        }
+
+                        goldArea.innerHTML = `
+                        <div class="gold-title">🪙 黃金存摺 (TWD)</div>
+                        <div class="gold-info">
+                            <div class="gold-price ${goldClass}">$${currentPrice.toLocaleString()}</div>
+                            <div class="gold-high">本月最高: ${highPrice.toLocaleString()}</div>
+                        </div>`;
+                    }
+
+                    // 2. 匯率區塊 
+                    const rateArea = document.getElementById('rate-area');
+                    let rateTags = '';
+                    const order = data.currencyOrder || Object.keys(data.rates || {});
+
+                    order.forEach(key => {
+                        const rateData = data.rates[key]; // 現在這是個物件 { price, prevClose }
+                        if (!rateData) return;
+
+                        // 相容舊資料防呆：如果 rateData 是數字(舊版)，就沒有 prevClose
+                        const val = (typeof rateData === 'object') ? rateData.price : rateData;
+                        const prev = (typeof rateData === 'object') ? rateData.prevClose : 0;
+
+                        const displayVal = val ? val.toFixed(2) : '---';
+
+                        // 計算顏色
+                        let rateClass = '';
+                        if (val > 0 && prev > 0) {
+                            const diff = val - prev;
+                            if (diff > Number.EPSILON) rateClass = 'trend-up';
+                            else if (diff < -Number.EPSILON) rateClass = 'trend-down';
+                        }
+
+                        // 為了讓顏色生效，我們在 style 裡直接寫入 color
+                        // 或者我們可以加一個 class。這裡選擇直接修改 style 字串
+                        let styleStr = '';
+                        if (rateClass === 'trend-up') styleStr = 'color:#e74c3c;font-weight:bold;';
+                        else if (rateClass === 'trend-down') styleStr = 'color:#27ae60;font-weight:bold;';
+
+                        rateTags += `
+                        <div class="rate-tag" draggable="true" data-type="currency" data-id="${key}">
+                            <span style="${styleStr}">${key}: ${displayVal}</span>
+                            <span class="rate-del" onclick="askDelete('currency', '${key}')">×</span>
+                        </div>`;
+                    });
+                    rateArea.innerHTML = rateTags + `<button class="rate-add-btn" onclick="openCurrencyModal()">+</button>`;
+                    rateArea.querySelectorAll('.rate-tag').forEach(addDnDHandlers);
+
+                    // 3. 股票列表 
+                    const displayArea = document.getElementById('data-area');
+                    let stockHtml = '';
+
+                    data.portfolio.forEach(stock => {
+                        // 計算漲跌與顏色
+                        const price = parseFloat(stock.price) || 0;
+                        const prevClose = parseFloat(stock.prevClose) || 0; // 從後端取得昨收
+                        const diff = price - prevClose;
+
+                        let priceClass = 'trend-flat'; // 預設平盤(灰)
+                        if (price > 0 && prevClose > 0) {
+                            // 修正 JS 浮點數誤差 (例如 0.1 + 0.2 !== 0.3)，用一個極小值 epsilon 判斷
+                            if (diff > 0.0001) priceClass = 'trend-up';
+                            else if (diff < -0.0001) priceClass = 'trend-down';
+                        }
+
+                        // 均價顯示 (顏色改為藍色)
+                        let avgCostHtml = '';
+                       
+
+                        const high = stock.high ? stock.high.toLocaleString() : '-';
+                        const low = stock.low ? stock.low.toLocaleString() : '-';
+                        const isTW = stock.symbol.includes('.TW') || stock.symbol.includes('.TWO');
+                        // 優先使用新版 avgCost (原幣)，如果沒有則退回 avgCostTWD (相容性)
+                        const avgVal = (stock.avgCost !== undefined) ? stock.avgCost : stock.avgCostTWD;
+
+                        if (avgVal > 0) {
+                            if (isTW) {
+                                // 台股：顯示 NT$
+                                avgCostHtml = `<div class="avg-cost">均: $${Math.round(avgVal).toLocaleString()}</div>`;
+                            } else {
+                                // 美股：顯示 US$
+                                avgCostHtml = `<div class="avg-cost">均:US$${avgVal.toFixed(2)} /台:$${Math.round(stock.avgCostTWD).toLocaleString()}</div>`;
+                            }
+                        }
+                        // 換算台幣  - 美股才顯示，並保留匯率資訊
+                        const costHtml = isTW ? '' : `<div class="cost">NT$ ${stock.costTWD.toLocaleString()} (Ex:${stock.rate})</div>`;
+
+                        stockHtml += `
+                        <div class="row" draggable="true" data-type="stock" data-id="${stock.symbol}" onclick="openUrl('${stock.link}')" oncontextmenu="showContextMenu(event, '${stock.symbol}')">
+                            <div style="flex:1">
+                                <div style="font-weight:bold; display:flex; align-items:center;">${stock.name}</div>
+                                <div style="font-size:11px;color:#888">${stock.symbol}</div>
+                            </div>
+                            <div>
+                                <div class="price ${priceClass}">$${stock.price.toLocaleString()}</div>
+                                <div class="day-range">H:${high} L:${low}</div>
+                                ${costHtml}
+                                ${avgCostHtml}
+                            </div>
+                        </div>`;
+                    });
+                    stockHtml += `<div style="text-align:center;font-size:10px;color:#ccc;margin-top:5px;">更新: ${data.updatedAt}</div>`;
+                    displayArea.innerHTML = stockHtml;
+                    displayArea.querySelectorAll('.row').forEach(addDnDHandlers);
+
+                } catch (e) {
+                    console.error(e);
+                    document.getElementById('data-area').innerHTML = `<div style="text-align:center;padding:20px;color:#e74c3c;">載入失敗: ${e.message}</div>`;
+                }
+            }
+            /*  明細開關函式 (改用更穩定的查找方式) */
+                function toggleDetails(btn) {
+                    // 1. 往上找，找到這顆按鈕所屬的「卡片 (inv-card)」
+                    const card = btn.closest('.inv-card');
+                    // 2. 在這張卡片裡面，往下找「明細區塊 (inv-logs)」
+                    const logs = card.querySelector('.inv-logs');
+
+                    if (!logs) return; // 防呆
+
+                    // 3. 切換顯示
+                    if (logs.style.display === 'block') {
+                        logs.style.display = 'none';
+                        // 把 ▲ 換成 ▼
+                        btn.innerText = btn.innerText.replace('▲', '▼');
+                    } else {
+                        logs.style.display = 'block';
+                        // 把 ▼ 換成 ▲
+                        btn.innerText = btn.innerText.replace('▼', '▲');
+                    }
+                }
+        function showDogContextMenu(e) {
+                e.preventDefault();
+                // 發送訊號給 main.js，請它彈出不受視窗大小限制的系統選單
+                ipcRenderer.send('open-dog-menu');
+            }
+
+    </script>
+</body>
+
+</html>

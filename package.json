@@ -1,0 +1,40 @@
+{
+  "name": "my-lazy-dog",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.hari.assetpet",
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    },
+    "files": [
+      "**/*",
+      "!watchlist.json"
+    ],
+    "extraResources": [
+      {
+        "from": "watchlist.json",
+        "to": "."
+      }
+    ]
+  },
+  "dependencies": {
+    "@line/bot-sdk": "^10.5.0",
+    "axios": "^1.13.2",
+    "cheerio": "^1.1.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "yahoo-finance2": "^2.11.3"
+  },
+  "devDependencies": {
+    "electron": "^40.0.0",
+    "electron-builder": "^26.4.0"
+  }
+}

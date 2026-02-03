@@ -1,0 +1,22 @@
+# === 核心忽略 ===
+node_modules/
+.DS_Store
+Thumbs.db
+.env
+
+# === Electron 打包產出 (這是導致檔案過大的主因) ===
+dist/
+out/
+build/
+release/
+
+# === VS Code 設定 ===
+.vscode/
+
+# === Log 檔 ===
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === 用戶資料 (如果有) ===
+watchlist.json
